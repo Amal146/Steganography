@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encryption Page</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container-wel">
+      <h1 id="selectedAlgoName"></h1>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          // Your JavaScript code here
+          const urlParams = new URLSearchParams(window.location.search);
+          const algoName = urlParams.get("algo");
+          const selectedAlgoDisplay =
+            document.getElementById("selectedAlgoName");
+          selectedAlgoDisplay.textContent = algoName
+            ? algoName.toUpperCase()
+            : "No Algorithm Selected";
+        });
+      </script>
+
+      <form
+        id="encryptForm"
+        action="/encode/"
+        enctype="multipart/form-data"
+        method="post"
+        onsubmit="return validateForm()"
+      >
+        <input type="hidden" name="algo" id="algo" value="" />
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const algoName = urlParams.get("algo");
+            const selectedAlgoDisplay =
+              document.getElementById("selectedAlgoName");
+            const algoInput = document.getElementById("algo");
+
+            selectedAlgoDisplay.textContent = algoName
+              ? algoName.toUpperCase()
+              : "No Algorithm Selected";
+            algoInput.value = algoName ? algoName.toUpperCase() : "";
+          });
+
+          function validateForm() {
+            // Get the message and file inputs
+            const message = document.getElementById("secretMessage").value;
+            const fileInput = document.getElementById("carrierImage");
+
+            // Check if both fields are filled
+            if (message.trim() === "") {
+              alert("Please enter a message.");
+              return false; // Prevent form submission
+            }
+
+            if (fileInput.files.length === 0) {
+              alert("Please select an image file.");
+              return false; // Prevent form submission
+            }
+
+            return true; // Allow form submission
+          }
+        </script>
+        <label for="secretMessage">Secret Message:</label>
+        <textarea
+          name="message"
+          id="secretMessage"
+          rows="5"
+          cols="30"
+        ></textarea
+        ><br />
+        <label for="carrierImage">Carrier Image:</label>
+        <input name="file" id="carrierImage" type="file" /><br />
+        <label for="encryptionKey">Encryption Key (Optional):</label>
+        <input type="text" id="encryptionKey" /><br />
+        <button id="encrypt" type="submit">Encrypt</button>
+        <!-- Change type to button -->
+        <h3><a id="b" href="#"> Back </a></h3>
+      </form>
+      <script>
+        document.getElementById("b").addEventListener("click", function () {
+          window.location.href = "/welcome";
+        });
+      </script>
+    </div>
+  </body>
+</html>

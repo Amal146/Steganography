@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome Page</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta
+      name="google-signin-client_id"
+      content="464751540017-q5653jc1g6jgen7dpg4459bs2ms82ngo.apps.googleusercontent.com"
+    />
+  </head>
+  <body>
+    <script>
+      window.onload = function () {
+        // Extract username from URL query parameter
+        var urlParams = new URLSearchParams(window.location.search);
+        var username = urlParams.get("username");
+
+        // Update the HTML content to display the username
+        var greetingElement = document.getElementById("greeting");
+        if (username) {
+          greetingElement.innerHTML = "Hi " + username + " !!";
+        } else {
+          greetingElement.innerHTML = "Hi there !!"; // Default greeting if username is not provided
+        }
+      };
+      function signOut() {
+        console.log("User signed out.");
+        window.location.href = "/";
+      }
+    </script>
+
+    <div class="container-wel">
+      <h1 id="greeting"></h1>
+      <h1>Welcome to PixHide</h1>
+      <p>The best solution for steganography</p>
+      <br /><br /><br />
+      <button id="b1" type="submit">Explore available solutions</button>
+      <script>
+        document.getElementById("b1").addEventListener("click", function () {
+          window.location.href = "/explore.html";
+        });
+      </script>
+      <p>For each problem there is at least one solution</p>
+      <br /><br />
+      <button id="b2" type="submit">Algorithm generation by needs</button>
+      <script>
+        document.getElementById("b2").addEventListener("click", function () {
+          window.location.href = "/needs.html";
+        });
+      </script>
+      <p>Data encryption based on needs</p>
+      <br /><br />
+      <button type="submit" id="b3">Decode existing images</button>
+      <p>For each problem there is at least one solution</p>
+      <script>
+        document.getElementById("b3").addEventListener("click", function () {
+          window.location.href = "/decryp.html";
+        });
+      </script>
+      <button onclick="signOut()">Sign Out</button>
+    </div>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+  </body>
+</html>

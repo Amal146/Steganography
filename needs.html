@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explore Page</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container-wel">
+      <h1>Choose Your Needs</h1>
+      <br /><br />
+      <button type="submit" class="need-btn">Security</button>
+      <button type="submit" class="need-btn">Robustness</button>
+      <button type="submit" class="need-btn">Simplicity</button>
+      <button type="submit" class="need-btn">Resistance</button>
+      <button type="submit" class="need-btn">Low Computational Cost</button>
+      <button type="submit" class="need-btn">Reduced Distortion</button>
+      <button type="submit" class="need-btn">Efficiency</button>
+      <button type="submit" class="need-btn">Low Space Consumption</button>
+      <button id="done" type="submit">Done</button>
+      <h3><span id="recommendedAlgo"></span></h3>
+      <h3><a id="b" href="#"> Back </a></h3>
+    </div>
+    <script>
+      document.getElementById("b").addEventListener("click", function () {
+        window.location.href = "/welcome";
+      });
+      const buttons = document.querySelectorAll(".need-btn");
+      const doneButton = document.getElementById("done");
+      const recommendedAlgo = document.getElementById("recommendedAlgo");
+      let selectedNeeds = []; // Array to store selected needs
+
+      function recommendAlgorithm(needs) {
+        // Logic to recommend algorithm based on selected needs
+        // Here's a basic example, you can improve this based on your knowledge
+        let recommendedAlgo = "";
+        if (
+          needs.includes("Security") &&
+          needs.includes("Simplicity") &&
+          needs.includes("Robustness")
+        ) {
+          recommendedAlgo = "LSB";
+        } else if (
+          needs.includes("Security") &&
+          needs.includes("Simplicity") &&
+          needs.includes("Resistance")
+        ) {
+          recommendedAlgo = "CSSISS";
+        } else if (needs.includes("Low Computaional Cost ")) {
+          recommendedAlgo = "BPCS";
+        } else if (needs.includes("Low Space Consumption")) {
+          recommendedAlgo = "Batch";
+        } else if (needs.includes("Reduced Distortion")) {
+          recommendedAlgo = "Permutation";
+        } else {
+          recommendedAlgo = "Select more needs to get a recommendation.";
+        }
+        return recommendedAlgo;
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          button.classList.toggle("selected");
+
+          // Update selectedNeeds array based on button selection
+          selectedNeeds = Array.from(
+            document.querySelectorAll(".need-btn.selected")
+          ).map((button) => button.textContent.trim()); // Extract button text as selected needs
+
+          // Update Done button text and state
+          doneButton.textContent = `Done (Selected: ${selectedNeeds.length})`;
+
+          // Recommend algorithm based on selected needs
+          recommendedAlgo.textContent = recommendAlgorithm(selectedNeeds);
+        });
+      });
+
+      doneButton.addEventListener("click", () => {
+        const selectedAlgo = recommendedAlgo.textContent;
+        if (selectedAlgo != "Select more needs to get a recommendation.") {
+          if (selectedAlgo != "LSB"){
+             window.location.href = `/yet.html`;
+          }else{
+            window.location.href = `/encryp.html?algo=${selectedAlgo}`;
+          }
+          
+        }  
+      });
+    </script>
+
+    <script src="script.js"></script>
+  </body>
+</html>

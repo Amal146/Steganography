@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decryption Page</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+  <div class="container-wel">
+    <h1>Decode Existing Image</h1>
+    <br /><br /><br />
+    <form
+      id="decodeForm"
+      action="/decode/"
+      method="post"
+      enctype="multipart/form-data"
+      onsubmit="return validateForm()"
+    > 
+      <input type="hidden" name="algo" id="algo" value="" />
+      <label for="decryptionAlgorithm">Decryption Algorithm:</label>
+      <select id="decryptionAlgorithm" name="decryptionAlgorithm">
+        <option value="lsb">LSB</option>
+        <option value="bpcs">BPCS</option>
+        <option value="permutation">Permutation</option>
+        <option value="batch">Batch</option>
+        <option value="csiss">CSISS</option>
+      </select><br />
+      <label for="carrierImage">Carrier Image:</label>
+      <input name="file" type="file" id="carrierImage" accept="image/*" required /><br />
+      <label for="decryptionKey">Decryption Key (Optional):</label>
+      <input type="text" id="decryptionKey" /><br />
+      <div class="g-recaptcha" data-sitekey="6Ld1_s8pAAAAANq59yT_EfNbeGU0N2q_HoW06Duu"></div>
+      <br />
+      <button type="submit" id="decode">Decode</button>
+      <h3><a id="b" href="#"> Back </a></h3>
+    </form>
+  </div>
+  <script>
+    function validateForm() {
+      var captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        alert("Please complete the reCAPTCHA.");
+        return false;
+      }
+      
+      var fileInput = document.getElementById('carrierImage');
+      if (!fileInput.value) {
+        alert("Please select an image.");
+        return false;
+      }
+
+      return true;
+    }
+
+    document.getElementById("b").addEventListener("click", function () {
+      window.location.href = "/welcome";
+    });
+  </script>
+</body>
+</html>
+

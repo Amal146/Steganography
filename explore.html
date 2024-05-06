@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Page</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="464751540017-q5653jc1g6jgen7dpg4459bs2ms82ngo.apps.googleusercontent.com">
+</head>
+<body>
+    <div class="container-wel">
+        <h1>Explore available solutions</h1>
+        <br><br>
+        <button type="submit">LSB</button>
+        <p class="description">Least Significant Bit - Hides data in the lower bits of pixels.</p>
+        <br>
+        <button type="submit">BPCS</button>
+        <p class="description">Bit Plane Complexity Segmentation - Spreads data across different bit planes of an image.</p>
+        <br>
+        <button type="submit">Permutation</button>
+        <p class="description">Permutation-Based - Rearranges pixel values to embed data.</p>
+        <br>
+        <button type="submit">Batch</button>
+        <p class="description">Batch Steganography - Hides data in multiple images simultaneously.</p>
+        <br>
+        <button type="submit">CSISS</button>
+        <p class="description">Carrier-Signal Steganography - Modulates a carrier signal to embed data in an image.</p>
+        <br><br>
+        <h3><a id="b" href="#" > Back </a></h3>
+        <script>
+            const buttons1 = document.querySelectorAll('button');
+            const descriptions = document.querySelectorAll('.description');
+            buttons1.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    descriptions.forEach((description, descIndex) => {
+                        description.style.display = descIndex === index ? 'block' : 'none';
+                    });
+                });
+            });
+            document.getElementById("b").addEventListener("click", function() {
+                window.location.href = "/welcome";
+            });
+        </script>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
