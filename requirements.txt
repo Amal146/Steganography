@@ -1,6 +1,5 @@
 fastapi 
 stegano
 numpy
-PIL 
-os
-tempfile
+Pillow 
+sqlalchemy
