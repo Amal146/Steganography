@@ -4,25 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from stegano import lsb
 import numpy as np  
 from PIL import Image  
-from database import SessionLocal
 import os
 import tempfile
 
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/")
-async def root(db: Session = Depends(get_db)):
-    # Use the database session
-    pass
 
 #encode function using LSB endpoint
 
