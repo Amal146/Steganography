@@ -2,7 +2,8 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from stegano import lsb
-from PIL import Image
+import numpy as np  
+from PIL import Image  
 import os
 import tempfile
 
@@ -89,7 +90,7 @@ async def decode_image(file: UploadFile = File(...)):
         html_content = """
         <script>
             // Show an alert if an error occurs during decoding
-            alert("An error occurred during decoding.");
+            alert("Impossible to detect message. Please check inputs");
         </script>
         """
     
@@ -98,6 +99,62 @@ async def decode_image(file: UploadFile = File(...)):
         os.unlink(temp_file_path)
 
     return HTMLResponse(content=html_content)
+
+
+
+def embed_message_in_bpc(original_image, secret_message):
+    # Convert the original image to a NumPy array
+    original_image_array = np.array(original_image)
+
+    # Convert the secret message to a binary string
+    binary_message = ''.join(format(ord(char), '08b') for char in secret_message)
+
+    # Get image dimensions and message length
+    image_height, image_width, _ = original_image_array.shape
+    message_length = len(binary_message)
+
+    # Check if there's enough space in the image for the message
+    if message_length > image_height * image_width * 0.5:
+        raise ValueError("Insufficient space in image to embed message.")
+
+    # Split the message into bits and convert them to integers
+    message_bits = [int(bit) for bit in binary_message]
+
+    # Flatten the image into a 1D array for easier processing
+    flat_image = original_image_array.flatten()
+
+    # Embed the secret message one bit at a time using BPCS
+    for i in range(message_length):
+        # Get the LSB (Least Significant Bit) of the current pixel
+        lsb = flat_image[i] & 1
+
+        # Modify the LSB to match the secret message bit
+        if message_bits[i] == 0 and lsb == 1:
+            flat_image[i] -= 1
+        elif message_bits[i] == 1 and lsb == 0:
+            flat_image[i] += 1
+
+    # Reshape the modified image data back to its original form
+    stego_image = flat_image.reshape(original_image_array.shape)
+
+    return stego_image
+
+
+@app.post("/embed_message/")
+async def embed_message(algo: str = Form(...), file: UploadFile = File(...), message: str = Form(...)):
+    # Open the uploaded image
+    img = Image.open(file.file)
+
+    # Embed the message in the image using BPC
+    stego_image = embed_message_in_bpc(img, message)
+
+    # Save the stego image temporarily
+    temp_stego_image_path = "temp_stego_image.png"
+    stego_image_pil = Image.fromarray(stego_image)
+    stego_image_pil.save(temp_stego_image_path)
+
+    # Return the path to the temporary stego image
+    return temp_stego_image_path
 
 
 @app.get("/welcome", response_class=HTMLResponse)

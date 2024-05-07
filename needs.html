@@ -47,7 +47,7 @@
           needs.includes("Resistance")
         ) {
           recommendedAlgo = "CSSISS";
-        } else if (needs.includes("Low Computaional Cost ")) {
+        } else if (needs.includes("Low Computational Cost")) {
           recommendedAlgo = "BPCS";
         } else if (needs.includes("Low Space Consumption")) {
           recommendedAlgo = "Batch";
@@ -79,7 +79,7 @@
       doneButton.addEventListener("click", () => {
         const selectedAlgo = recommendedAlgo.textContent;
         if (selectedAlgo != "Select more needs to get a recommendation.") {
-          if (selectedAlgo != "LSB"){
+          if (selectedAlgo != "LSB" && selectedAlgo != "BPCS"){
              window.location.href = `/yet.html`;
           }else{
             window.location.href = `/encryp.html?algo=${selectedAlgo}`;

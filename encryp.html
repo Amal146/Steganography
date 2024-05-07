@@ -21,7 +21,6 @@
             : "No Algorithm Selected";
         });
       </script>
-
       <form
         id="encryptForm"
         action="/encode/"
@@ -61,6 +60,15 @@
             }
 
             return true; // Allow form submission
+          }
+          function checkAlgorithm() {
+            var algorithm = document.getElementById("algo").value;
+            var form = document.getElementById("encryptForm");
+            if (algorithm === "LSB") {
+              form.action = "/encode/";
+            } else if (algorithm === "BPCS") {
+              form.action = "/embed_message/";
+            }
           }
         </script>
         <label for="secretMessage">Secret Message:</label>
