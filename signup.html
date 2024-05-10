@@ -51,7 +51,7 @@
         ></div>
       </div>
       <h3>or</h3>
-      <form id="loginForm" onsubmit="return validateForm()">
+      <form id="signupForm" action="/signup" method="post">
         <div class="form-group">
           <label for="username">Username:</label>
           <input type="text" id="username" name="username" required />
@@ -63,12 +63,32 @@
         <button type="submit" id="sign">Sign Up</button>
         <script>
           document
-            .getElementById("sign")
-            .addEventListener("click", function () {
+            .getElementById("signupForm")
+            .addEventListener("submit", async function (event) {
               event.preventDefault();
-              var username = document.getElementById("username").value;
-              window.location.href =
-                "/welcome?username=" + encodeURIComponent(username);
+              const form = event.target;
+              const formData = new FormData(form);
+
+              try {
+                const response = await fetch("/signup", {
+                  method: "POST",
+                  body: formData,
+                });
+
+                if (response.ok) {
+                  // Redirect the user to the welcome page
+                  var username = document.getElementById("username").value;
+                  window.location.href = "/welcome?username=" + encodeURIComponent(username);
+                } else {
+                  // Handle errors
+                  var errorMessage = "Username already exists";
+                  document.getElementById("error-msg").innerText = errorMessage;
+                }
+              } catch (error) {
+                console.error("Error:", error);
+                var errorMessage = "An error occured Try later";
+                document.getElementById("error-msg").innerText = errorMessage;
+              }
             });
         </script>
       </form>
@@ -91,8 +111,6 @@
               "/welcome?username=" + encodeURIComponent(username);
           } else {
             console.error("Username not found in JWT payload.");
-            // Handle the case where username is not found in JWT payload
-            // For example, display an error message to the user
             var errorMessage = "Username not found in JWT payload.";
             document.getElementById("error-msg").innerText = errorMessage;
           }

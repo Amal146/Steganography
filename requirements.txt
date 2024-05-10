@@ -3,3 +3,6 @@ stegano
 numpy
 Pillow 
 sqlalchemy
+cryptography
+psycopg2
+pycryptodome

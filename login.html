@@ -18,7 +18,6 @@
       .container {
         text-align: center;
       }
-
       .icon-container {
         display: flex;
         justify-content: center;
@@ -51,7 +50,7 @@
         ></div>
       </div>
       <h3>or</h3>
-      <form id="loginForm" onsubmit="return validateForm()">
+      <form id="loginForm">
         <div class="form-group">
           <label for="username">Username:</label>
           <input type="text" id="username" name="username" required />
@@ -60,30 +59,64 @@
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" required />
         </div>
-        <button type="submit" id="log">Login</button>
+        <button type="submit">Login</button>
       </form>
       <h3>Don't have an account ?<a id="l" href="#"> Sign up </a></h3>
-      <script>
-        document.getElementById("l").addEventListener("click", function () {
-          window.location.href = "/signup.html";
-        });
-        document
-          .getElementById("log")
-          .addEventListener("click", function (event) {
-            event.preventDefault(); // Prevent default form submission
-            var username = document.getElementById("username").value;
-            window.location.href =
-              "/welcome?username=" + encodeURIComponent(username);
-          });
-      </script>
       <p id="error-msg"></p>
     </div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-      function handleCredentialResponse(response) {
+      document.getElementById("l").addEventListener("click", function () {
+        window.location.href = "/signup.html";
+      });
 
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+
+          try {
+            const response = await fetch("/login", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              // Redirect the user to the welcome page
+              var username = document.getElementById("username").value;
+              window.location.href =
+                "/welcome?username=" + encodeURIComponent(username);
+            } else {
+              // Handle errors based on response status code
+              if (response.status === 401) {
+                // Unauthorized - wrong password or username
+                console.error("Login failed:", response.statusText);
+                var errorMessage = "Wrong username or password";
+              } else if (response.status === 400) {
+                // Bad request - invalid form data or other client-side error
+                console.error("Bad request:", response.statusText);
+                var errorMessage = "Invalid form data";
+              } else {
+                // Other server-side errors
+                console.error("Server error:", response.statusText);
+                var errorMessage = "An error occurred. Please try again later";
+              }
+
+              // Display the error message
+              document.getElementById("error-msg").innerText = errorMessage;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            var errorMessage = "An error occurred. Please try again later";
+            document.getElementById("error-msg").innerText = errorMessage;
+          }
+        });
+
+      function handleCredentialResponse(response) {
         const responsePayload = decodeJwtResponse(response.credential);
-        console.log('Given Name: ' + responsePayload.given_name);
+        console.log("Given Name: " + responsePayload.given_name);
         var username = responsePayload.given_name; // Assuming the username is included in the JWT payload
         if (username) {
           // Redirect to welcome page with username as query parameter
@@ -96,7 +129,6 @@
           var errorMessage = "Username not found in JWT payload.";
           document.getElementById("error-msg").innerText = errorMessage;
         }
-
       }
 
       function decodeJwtResponse(token) {
@@ -114,7 +146,6 @@
 
         return JSON.parse(jsonPayload);
       }
-      
     </script>
   </body>
 </html>

@@ -1,16 +1,98 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from stegano import lsb
 import numpy as np  
 from PIL import Image  
-import os
+from sqlalchemy.orm import Session
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+from database import SessionLocal, engine
+from models import User
+import models, schemas
+from database import Base,engine,SessionLocal
+import schemas
+import os 
 import tempfile
-
+import hashlib
 
 app = FastAPI()
+
+db = SessionLocal()
+
+
+Base.metadata.create_all(engine)
+def get_session():
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Generate RSA key pair
+key = RSA.generate(2048)
+private_key = key.export_key()
+public_key = key.publickey().export_key()
+
+# Save public key to a file (for encryption during signup)
+with open("public.pem", "wb") as file:
+    file.write(public_key)
+
+# Save private key to a file (for decryption during login)
+with open("private.pem", "wb") as file:
+    file.write(private_key)
+
+
+# Helper functions for encryption and decryption
+def encrypt_password(password):
+    with open("public.pem", "rb") as file:
+        public_key = RSA.import_key(file.read())
+    cipher = PKCS1_OAEP.new(public_key)
+    encrypted_password = cipher.encrypt(password.encode())
+    return encrypted_password
+
+def decrypt_password(encrypted_password):
+    with open("private.pem", "rb") as file:
+        private_key = RSA.import_key(file.read())
+    cipher = PKCS1_OAEP.new(private_key)
+    decrypted_password = cipher.decrypt(encrypted_password)
+    return decrypted_password.decode()
+ 
+
+# Signup endpoint
+@app.post("/signup/")
+async def signup(username: str = Form(...), password: str = Form(...)):
+    # Check if the username already exists
+    existing_user = db.query(models.User).filter(User.username == username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    # Encrypt the password
+    encrypted_password = encrypt_password(password)
+
+    # Create new user record
+    new_user = User(username=username, password=encrypted_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User signed up successfully"}
+
+# Login endpoint
+@app.post("/login/")
+async def login(username: str = Form(...), password: str = Form(...)):
+    existing_user = db.query(models.User).filter(User.username == username).first()
+    if existing_user:
+        decrypted_password = decrypt_password(existing_user.password)
+        if decrypted_password  == password:  # Compare decrypted password with plaintext password
+            return {"message": "User login successful"}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid password" + "decrypted_password" + decrypted_password)
+    else:
+        raise HTTPException(status_code=401, detail="Invalid username" + "decrypted_password" + decrypted_password)
+    
 #encode function using LSB endpoint
 
 def encode_lsb(carrier_image_path, message):

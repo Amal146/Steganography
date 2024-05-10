@@ -1,8 +1,15 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, String, Integer, LargeBinary
+from database import Base
 
-database_url = "postgresql://postegres:system@localhost/pixhide"
-engine = create_engine(database_url)
+class User(Base):
+    __tablename__ = "users"
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(length=512), unique=True)  
+    password = Column(LargeBinary, nullable=False)
+    provider = Column(String, default="user")
 
+    def __init__(self, username, password, provider="user"):
+        self.username = username.strip()  # Remove leading and trailing whitespace
+        self.password = password
+        self.provider = provider
