@@ -24,7 +24,7 @@ To run PixHide locally, follow these steps:
 3. Start the server:
    ```uvicorn main:app --reload ```
 4. Access the web interface:
-   Open your web browser and navigate to http://localhost:3000.
+   Open your web browser and navigate to http://localhost:8000.
 
 ## Contributing
 Contributions are welcome! Please fork the repository and submit a pull request.
