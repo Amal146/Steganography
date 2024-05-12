@@ -1,17 +1,21 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import pyaes, pbkdf2, binascii, os, secrets
 from fastapi.staticfiles import StaticFiles
 from stegano import lsb
+from typing import Optional
 import numpy as np  
 from PIL import Image  
+from base64 import b64decode
 from sqlalchemy.orm import Session
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Cipher import PKCS1_OAEP, AES 
+from Crypto.Util.Padding import pad, unpad
 from database import SessionLocal, engine
 from models import User
 import models, schemas
-from database import Base,engine,SessionLocal
+from database import Base, engine, SessionLocal
 import schemas
 import os 
 import tempfile
@@ -21,45 +25,43 @@ app = FastAPI()
 
 db = SessionLocal()
 
-
 Base.metadata.create_all(engine)
-def get_session():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Generate RSA key pair
-key = RSA.generate(2048)
-private_key = key.export_key()
-public_key = key.publickey().export_key()
+# File paths for RSA keys
+PUBLIC_KEY_PATH = "public.pem"
+PRIVATE_KEY_PATH = "private.pem"
 
-# Save public key to a file (for encryption during signup)
-with open("public.pem", "wb") as file:
-    file.write(public_key)
+# Generate RSA key pair if the keys do not exist
+if not (os.path.exists(PUBLIC_KEY_PATH) and os.path.exists(PRIVATE_KEY_PATH)):
+    key = RSA.generate(2048)
+    private_key = key.export_key()
+    public_key = key.publickey().export_key()
 
-# Save private key to a file (for decryption during login)
-with open("private.pem", "wb") as file:
-    file.write(private_key)
+    # Save public key to a file (for encryption during signup)
+    with open(PUBLIC_KEY_PATH, "wb") as file:
+        file.write(public_key)
 
+    # Save private key to a file (for decryption during login)
+    with open(PRIVATE_KEY_PATH, "wb") as file:
+        file.write(private_key)
 
 # Helper functions for encryption and decryption
 def encrypt_password(password):
-    with open("public.pem", "rb") as file:
+    with open(PUBLIC_KEY_PATH, "rb") as file:
         public_key = RSA.import_key(file.read())
     cipher = PKCS1_OAEP.new(public_key)
     encrypted_password = cipher.encrypt(password.encode())
     return encrypted_password
 
 def decrypt_password(encrypted_password):
-    with open("private.pem", "rb") as file:
+    with open(PRIVATE_KEY_PATH, "rb") as file:
         private_key = RSA.import_key(file.read())
     cipher = PKCS1_OAEP.new(private_key)
     decrypted_password = cipher.decrypt(encrypted_password)
     return decrypted_password.decode()
+
  
 
 # Signup endpoint
@@ -92,7 +94,33 @@ async def login(username: str = Form(...), password: str = Form(...)):
             raise HTTPException(status_code=400, detail="Invalid password" + "decrypted_password" + decrypted_password)
     else:
         raise HTTPException(status_code=401, detail="Invalid username" + "decrypted_password" + decrypted_password)
-    
+
+
+#Encrypt_message_using _simple_substitution_cipher
+def encrypt_message(message, key):
+    encrypted_message = ""
+    key_index = 0
+    for char in message:
+        # Perform XOR operation between the character and the corresponding character in the key
+        encrypted_char = chr(ord(char) ^ ord(key[key_index % len(key)]))
+        encrypted_message += encrypted_char
+        key_index = (key_index + 1) % len(key)
+    encrypted_message += "//ECRP%"
+    return encrypted_message
+
+
+
+def decrypt_message(encrypted_message, key):
+    decrypted_message = ""
+    key_index = 0
+    for char in encrypted_message:
+        # Perform XOR operation between the character of the encrypted message and the corresponding character in the key
+        decrypted_char = chr(ord(char) ^ ord(key[key_index % len(key)]))
+        decrypted_message += decrypted_char
+        key_index = (key_index + 1) % len(key)
+    return decrypted_message
+
+
 #encode function using LSB endpoint
 
 def encode_lsb(carrier_image_path, message):
@@ -116,11 +144,15 @@ def encode_lsb(carrier_image_path, message):
 
 #encode endpoint using LSB endpoint
 @app.post("/encode/")
-async def encode_image(algo: str = Form(...), file: UploadFile = File(...), message: str = Form(...)):
+async def encode_image(algo: str = Form(...), file: UploadFile = File(...), message: str = Form(...), key: Optional[str] = Form(None)):
     
     contents = await file.read()
     with open(file.filename, "wb") as f:
         f.write(contents)
+    # Handle encryption if key is provided
+    if key:
+        message = encrypt_message(message, key)
+    
     encoded_image_path = encode_lsb(file.filename, message)
     return FileResponse(encoded_image_path, media_type="image/png")
 
@@ -141,7 +173,7 @@ def decode_lsb(encoded_image_path):
 
 #decode endpoint using LSB endpoint
 @app.post("/decode/")
-async def decode_image(file: UploadFile = File(...)):
+async def decode_image(file: UploadFile = File(...),key: Optional[str] = Form(None)):
 
     # Save the contents of the uploaded file to a temporary file
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -151,6 +183,12 @@ async def decode_image(file: UploadFile = File(...)):
     try:
         # Decode the message
         decoded_message = decode_lsb(temp_file_path)
+
+        if decoded_message.endswith("//ECRP%"):
+            if key:
+                decoded_message = decoded_message.replace("//ECRP%", "")
+                decoded_message = decrypt_message(decoded_message, key)
+
 
         if decoded_message:
             html_content = f"""
@@ -222,9 +260,11 @@ def embed_message_in_bpc(original_image, secret_message):
 
 
 @app.post("/embed_message/")
-async def embed_message(algo: str = Form(...), file: UploadFile = File(...), message: str = Form(...)):
+async def embed_message(algo: str = Form(...), file: UploadFile = File(...), message: str = Form(...), key: Optional[str] = Form(None)):
     # Open the uploaded image
     img = Image.open(file.file)
+    if key:
+        message = encrypt_message(message, key)
 
     # Embed the message in the image using BPC
     stego_image = embed_message_in_bpc(img, message)

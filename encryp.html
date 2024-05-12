@@ -47,6 +47,7 @@
             // Get the message and file inputs
             const message = document.getElementById("secretMessage").value;
             const fileInput = document.getElementById("carrierImage");
+            const keyInput = document.getElementById("encryptionKey").value;
 
             // Check if both fields are filled
             if (message.trim() === "") {
@@ -58,7 +59,7 @@
               alert("Please select an image file.");
               return false; // Prevent form submission
             }
-
+            
             return true; // Allow form submission
           }
           function checkAlgorithm() {
@@ -82,7 +83,7 @@
         <label for="carrierImage">Carrier Image:</label>
         <input name="file" id="carrierImage" type="file" /><br />
         <label for="encryptionKey">Encryption Key (Optional):</label>
-        <input type="text" id="encryptionKey" /><br />
+        <input name="key" id="encryptionKey" /><br />
         <button id="encrypt" type="submit">Encrypt</button>
         <!-- Change type to button -->
         <h3><a id="b" href="#"> Back </a></h3>

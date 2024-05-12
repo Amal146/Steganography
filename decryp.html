@@ -37,7 +37,7 @@
           required
         /><br />
         <label for="decryptionKey">Decryption Key (Optional):</label>
-        <input type="text" id="decryptionKey" /><br />
+        <input id="decryptionKey" name="key"/><br />
         <div
           class="g-recaptcha"
           data-sitekey="6Ld1_s8pAAAAANq59yT_EfNbeGU0N2q_HoW06Duu"
@@ -50,6 +50,8 @@
     <script>
       function validateForm() {
         var captchaResponse = grecaptcha.getResponse();
+        const keyInput = document.getElementById("decryptionKey").value;
+
         if (!captchaResponse) {
           alert("Please complete the reCAPTCHA.");
           return false;
