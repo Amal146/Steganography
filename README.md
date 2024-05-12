@@ -18,7 +18,7 @@ To run PixHide locally, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/pixhide.git
+   git clone [https://github.com/username/pixhide.git](https://github.com/Amal146/Steganography_PixHide.git)
 2. Install dependencies:
    ```pip install -r requirements.txt```
 3. Start the server:
