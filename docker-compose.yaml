@@ -9,7 +9,7 @@ services:
     volumes:
       - ./:/code:ro
     environment:
-      - DATABASE_URL=postgresql://postgres:system@db:5432/pixhide
+      - DATABASE_URL=postgresql://postgres:system@localhost:5432/pixhide
     ports:
       - "80:80"
 
